@@ -35,8 +35,8 @@ void main()
 	addrinfo hints;
 	addrinfo* result;
 	ZeroMemory(&hints, sizeof(hints));
-	hints.ai_family = AF_INET6;
-	hints.ai_socktype = SOCK_DGRAM;
+	hints.ai_family = AF_INET;
+	hints.ai_socktype = SOCK_STREAM;
 	hints.ai_protocol - IPPROTO_TCP;
 	hints.ai_flags = AI_PASSIVE;
 	HRESULT hrs = HRESULT_FROM_WIN32(10047);
