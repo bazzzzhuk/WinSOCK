@@ -7,7 +7,7 @@
 #include<winsock2.h>
 #include<WS2tcpip.h>
 #include<iphlpapi.h>
-#include<Winerror.h>
+#include<winerror.h>
 
 using namespace std;
 
