@@ -11,6 +11,10 @@
 #include<iphlpapi.h>
 #include<winerror.h>
 
+#include<fstream>
+//#include<string>
+#include<sstream>
+
 #include<FormatLastError.h>
 
 using namespace std;
@@ -21,6 +25,8 @@ using namespace std;
 #define PORT "27015"
 #define BUFFER_LENGTH 1500
 #define MAX_CONNECTION 5
+
+void save(CHAR message_for_save[]);
 
 void main()
 {
@@ -126,6 +132,7 @@ void main()
 		if (iResult > 0)
 		{
 			cout << recvbuffer << "(" << strlen(recvbuffer) << " Bytes)" << endl;
+			save(recvbuffer);
 			iSendResult = send(client_socket, recvbuffer, strlen(recvbuffer), 0);
 			dwError = WSAGetLastError();
 			if (iSendResult == SOCKET_ERROR)
@@ -157,4 +164,17 @@ void main()
 	closesocket(listen_socket);
 
 	WSACleanup();
+}
+void save(CHAR message_for_save[])
+{
+	string filename = "recv_client.txt";
+	std::ofstream fout(filename);
+	for (int i = 0; i < strlen(message_for_save); i++)
+	{
+		fout << message_for_save[i];
+	}
+	fout.close();
+	std::string cmd = "notepad ";
+	cmd += filename;
+	system(cmd.c_str());
 }
