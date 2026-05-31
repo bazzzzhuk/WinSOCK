@@ -1,6 +1,8 @@
-#ifndef WIN32_LEAN_AND_MEAN
+п»ї#ifndef WIN32_LEAN_AND_MEAN
 #define WIN32_LEAN_AND_MEAN
 #endif // WIN32_LEAN_AND_MEAN
+#define _CRT_SECURE_NO_WARNINGS
+#define _WINSOCK_DEPRECATED_NO_WARNINGS
 
 #include<iostream>
 #include<Windows.h>
@@ -25,6 +27,7 @@ void main()
 	setlocale(LC_ALL, "");
 	cout << "Server" << endl;
 	DWORD dwError = 0;
+	CHAR sz_Buf[256] = {};
 	CHAR szERROR[256] = {};
 	//1) INIT WINSOCK
 	WSADATA wsaData;
@@ -38,7 +41,7 @@ void main()
 		return;
 	}
 
-	//2) Параметры подключения:
+	//2) РџР°СЂР°РјРµС‚СЂС‹ РїРѕРґРєР»СЋС‡РµРЅРёСЏ:
 	addrinfo hints;
 	addrinfo* result;
 	ZeroMemory(&hints, sizeof(hints));
@@ -57,7 +60,7 @@ void main()
 		return;
 	}
 
-	//3)Создаём сокет для сервера, который он будет постоянно слушать "LISTENING"
+	//3)РЎРѕР·РґР°С‘Рј СЃРѕРєРµС‚ РґР»СЏ СЃРµСЂРІРµСЂР°, РєРѕС‚РѕСЂС‹Р№ РѕРЅ Р±СѓРґРµС‚ РїРѕСЃС‚РѕСЏРЅРЅРѕ СЃР»СѓС€Р°С‚СЊ "LISTENING"
 	SOCKET listen_socket = socket(result->ai_family, result->ai_socktype, result->ai_protocol);
 	dwError = WSAGetLastError();
 	if (listen_socket == INVALID_SOCKET)
@@ -84,7 +87,7 @@ void main()
 
 	freeaddrinfo(result);
 
-	//5) Запускаем прослушивание сокета:
+	//5) Р—Р°РїСѓСЃРєР°РµРј РїСЂРѕСЃР»СѓС€РёРІР°РЅРёРµ СЃРѕРєРµС‚Р°:
 	if (listen(listen_socket, MAX_CONNECTION) == SOCKET_ERROR)
 	{
 		dwError = WSAGetLastError();
@@ -96,8 +99,15 @@ void main()
 		return;
 	}
 
-	//6) Обработка соединений от клиентов:
-	SOCKET client_socket = accept(listen_socket, NULL, NULL);
+	//6) РћР±СЂР°Р±РѕС‚РєР° СЃРѕРµРґРёРЅРµРЅРёР№ РѕС‚ РєР»РёРµРЅС‚РѕРІ:
+	SOCKADDR_IN addr;
+	int addrlen = sizeof(addr);
+	SOCKET client_socket = accept(listen_socket, (SOCKADDR*)&addr, &addrlen);
+	char* ip = inet_ntoa(addr.sin_addr);
+	sprintf(sz_Buf, "Ip-Р°РґСЂРµСЃ РєР»РёРµРЅС‚Р°: \t%s", ip);
+	cout << sz_Buf << endl;
+	cout << "РџРѕСЂС‚  РєР»РёРµРЅС‚Р°: \t\t" << ntohs(addr.sin_port) << endl;
+	cout << "РЎРѕРєРµС‚ РєР»РёРµРЅС‚Р°: \t\t" << client_socket << endl;
 	dwError = WSAGetLastError();
 	if (client_socket == INVALID_SOCKET)
 	{
@@ -105,7 +115,7 @@ void main()
 		cout << "Accept failed with error: " << WSAGetLastError() << endl;
 	}
 
-	//7) Получение и отправка данных:
+	//7) РџРѕР»СѓС‡РµРЅРёРµ Рё РѕС‚РїСЂР°РІРєР° РґР°РЅРЅС‹С…:
 	CHAR recvbuffer[BUFFER_LENGTH] = {};
 	CHAR sendbuffer[BUFFER_LENGTH] = {};
 	INT iSendResult = 0;
