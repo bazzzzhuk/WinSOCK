@@ -12,12 +12,15 @@
 #include<winerror.h>
 
 #include<fstream>
-//#include<string>
 #include<sstream>
+#include <ctime>
+#include <chrono>
+#include <format>
 
 #include<FormatLastError.h>
 
 using namespace std;
+using namespace std::chrono;
 
 #pragma comment(lib, "WS2_32.lib")
 #pragma comment(lib, "FormatLastError.lib")
@@ -106,6 +109,9 @@ void main()
 	}
 
 	//6) Обработка соединений от клиентов:
+	char formatted[100] = {};
+	time_t t = time(nullptr);
+	tm* timePtr = localtime(&t);
 	SOCKADDR_IN addr;
 	int addrlen = sizeof(addr);
 	SOCKET client_socket = accept(listen_socket, (SOCKADDR*)&addr, &addrlen);
@@ -114,6 +120,8 @@ void main()
 	cout << sz_Buf << endl;
 	cout << "Порт  клиента: \t\t" << ntohs(addr.sin_port) << endl;
 	cout << "Сокет клиента: \t\t" << client_socket << endl;
+	strftime(formatted, sizeof(formatted), "%T, %F", timePtr);
+	cout << "Время: \t\t\t" << formatted << endl;
 	dwError = WSAGetLastError();
 	if (client_socket == INVALID_SOCKET)
 	{
