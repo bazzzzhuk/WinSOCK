@@ -121,7 +121,7 @@ void main()
 	cout << "Порт  клиента: \t\t" << ntohs(addr.sin_port) << endl;
 	cout << "Сокет клиента: \t\t" << client_socket << endl;
 	strftime(formatted, sizeof(formatted), "%T, %F", timePtr);
-	cout << "Время: \t\t\t" << formatted << endl;
+	cout << "Время подключения: \t" << formatted << endl;
 	dwError = WSAGetLastError();
 	if (client_socket == INVALID_SOCKET)
 	{
@@ -130,17 +130,18 @@ void main()
 	}
 
 	//7) Получение и отправка данных:
-	CHAR recvbuffer[BUFFER_LENGTH] = {};
 	CHAR sendbuffer[BUFFER_LENGTH] = {};
 	INT iSendResult = 0;
 	dwError = WSAGetLastError();
 	do
 	{
+		CHAR recvbuffer[BUFFER_LENGTH] = {};
 		iResult = recv(client_socket, recvbuffer, BUFFER_LENGTH, 0);
+		dwError = WSAGetLastError();
 		if (iResult > 0)
 		{
+			//cout << "buff do" << recvbuffer << endl;
 			cout << recvbuffer << "(" << strlen(recvbuffer) << " Bytes)" << endl;
-			save(recvbuffer);
 			iSendResult = send(client_socket, recvbuffer, strlen(recvbuffer), 0);
 			dwError = WSAGetLastError();
 			if (iSendResult == SOCKET_ERROR)
@@ -149,7 +150,12 @@ void main()
 				cout << "Send failed with error: " << WSAGetLastError() << endl;
 				closesocket(client_socket);
 			}
-			else cout << "Bytes sent: " << iSendResult << endl;
+			else
+			{
+				cout << "Bytes sent: " << iSendResult << endl;
+				save(recvbuffer);
+				//recvbuffer[BUFFER_LENGTH];
+			}
 		}
 		else if (iResult == 0)cout << "Connection closing..." << endl;
 		else
@@ -176,11 +182,12 @@ void main()
 void save(CHAR message_for_save[])
 {
 	string filename = "recv_client.txt";
-	std::ofstream fout(filename);
+	std::ofstream fout(filename, std::ios::app);
 	for (int i = 0; i < strlen(message_for_save); i++)
 	{
 		fout << message_for_save[i];
 	}
+	fout << '\n';
 	fout.close();
 	std::string cmd = "notepad ";
 	cmd += filename;
