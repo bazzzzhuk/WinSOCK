@@ -111,15 +111,15 @@ void main()
 	//6.1) Получаем информацию о сокете клиента:
 	sockaddr_in client_address_in = (sockaddr_in)client_address;
 	//CHAR* clientIP = inet_ntoa(client_address.);
-	cout << inet_ntoa(client_address.sin_addr)<<":"<< ntohs(client_address.sin_port) << endl;
+	cout << inet_ntoa(client_address.sin_addr) << ":" << ntohs(client_address.sin_port) << endl;
 
 	//7) Получение и отправка данных:
-	CHAR recvbuffer[BUFFER_LENGTH] = {};
-	CHAR sendbuffer[BUFFER_LENGTH] = {};
 	INT iSendResult = 0;
 	dwError = WSAGetLastError();
 	do
 	{
+	CHAR sendbuffer[BUFFER_LENGTH] = {};
+		CHAR recvbuffer[BUFFER_LENGTH] = {};
 		iResult = recv(client_socket, recvbuffer, BUFFER_LENGTH, 0);
 		if (iResult > 0)
 		{
