@@ -21,6 +21,12 @@ using namespace std;
 #define BUFFER_LENGTH 1500
 #define MAX_CONNECTION 5
 
+SOCKET sockets[MAX_CONNECTION] = {};
+DWORD dwThreadIDs[MAX_CONNECTION] = {};
+HANDLE hTreads[MAX_CONNECTION] = {};
+
+VOID ClientHandle(SOCKET client_socket);
+
 void main()
 {
 	setlocale(LC_ALL, "");
@@ -113,12 +119,33 @@ void main()
 	//CHAR* clientIP = inet_ntoa(client_address.);
 	cout << inet_ntoa(client_address.sin_addr) << ":" << ntohs(client_address.sin_port) << endl;
 
+	ClientHandle(client_socket);
+	
+
+	/*iResult = shutdown(client_socket, SD_BOTH);
+	dwError = WSAGetLastError();
+	if (iResult == SOCKET_ERROR)cout << "Client shudown failed with " << FormatLastError(dwError, szERROR) << endl;*/
+
+	/*iResult = shutdown(listen_socket, SD_RECEIVE);
+	dwError = WSAGetLastError();
+	if (iResult == SOCKET_ERROR)cout << "Client shudown failed with " << FormatLastError(dwError, szERROR) << endl;*/
+
+	closesocket(client_socket);
+	closesocket(listen_socket);
+
+	WSACleanup();
+}
+
+VOID ClientHandle(SOCKET client_socket)
+{
 	//7) Получение и отправка данных:
 	INT iSendResult = 0;
-	dwError = WSAGetLastError();
+	INT iResult = 0;
+	CHAR szERROR[256] = {};
+	DWORD dwError = 0;
 	do
 	{
-	CHAR sendbuffer[BUFFER_LENGTH] = {};
+		CHAR sendbuffer[BUFFER_LENGTH] = {};
 		CHAR recvbuffer[BUFFER_LENGTH] = {};
 		iResult = recv(client_socket, recvbuffer, BUFFER_LENGTH, 0);
 		if (iResult > 0)
@@ -146,13 +173,4 @@ void main()
 	iResult = shutdown(client_socket, SD_BOTH);
 	dwError = WSAGetLastError();
 	if (iResult == SOCKET_ERROR)cout << "Client shudown failed with " << FormatLastError(dwError, szERROR) << endl;
-
-	iResult = shutdown(listen_socket, SD_BOTH);
-	dwError = WSAGetLastError();
-	if (iResult == SOCKET_ERROR)cout << "Client shudown failed with " << FormatLastError(dwError, szERROR) << endl;
-
-	closesocket(client_socket);
-	closesocket(listen_socket);
-
-	WSACleanup();
 }
