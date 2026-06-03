@@ -9,8 +9,8 @@
 #include<WS2tcpip.h>
 #include<iphlpapi.h>
 #include<winerror.h>
-
 #include<FormatLastError.h>
+#include<Messages.h>
 
 using namespace std;
 
@@ -19,7 +19,7 @@ using namespace std;
 
 #define PORT "27015"
 #define BUFFER_LENGTH 1500
-#define MAX_CONNECTION 5
+#define MAX_CONNECTION 3
 
 SOCKET sockets[MAX_CONNECTION] = {};
 DWORD dwThreadIDs[MAX_CONNECTION] = {};
@@ -124,7 +124,6 @@ void main()
 		}
 		//6.1) Получаем информацию о сокете клиента:
 		sockaddr_in client_address_in = (sockaddr_in)client_address;
-		//CHAR* clientIP = inet_ntoa(client_address.);
 		cout << inet_ntoa(client_address.sin_addr) << ":" << ntohs(client_address.sin_port) << endl;
 
 		if (i < MAX_CONNECTION)
@@ -141,7 +140,21 @@ void main()
 			);
 			i++;
 		}
-		//ClientHandle(client_socket);
+		else
+		{
+			CHAR recv_buffer[BUFFER_LENGTH] = {};
+			iResult = recv(client_socket, recv_buffer, BUFFER_LENGTH, NULL);
+			/*if (iResult != 0)
+			{
+				FormatLastError(WSAGetLastError(), szERROR);
+				cout << szERROR << endl;
+			}
+			else cout << recv_buffer << endl;*/
+			//CHAR szDeclainMessage[] = DECLINE_MESSAGE;
+			iResult = send(client_socket, DECLINE_MESSAGE, strlen(DECLINE_MESSAGE), NULL);
+			shutdown(client_socket, SD_BOTH);
+			closesocket(client_socket);
+		}
 	} while (true);
 
 
@@ -165,10 +178,10 @@ VOID ClientHandle(SOCKET client_socket)
 	client_address.sin_family = AF_INET;
 	INT namelen = sizeof(client_address);
 	getpeername(client_socket, (sockaddr*)&client_address, &namelen);
-	CHAR szName[256] = {};
-	sprintf(szName, "%s:%d\t", inet_ntoa(client_address.sin_addr), ntohs(client_address.sin_port));
+	CHAR sz_client_address[256] = {};
+	sprintf(sz_client_address, "%s:%d --> ", inet_ntoa(client_address.sin_addr), ntohs(client_address.sin_port));
 
-	cout << "Client connected:\t" << szName<<"\tSOCKET:\t" << client_socket << endl;
+	cout << "Client connected:\t" << sz_client_address<<"\tSOCKET:\t" << client_socket << endl;
 	INT iSendResult = 0;
 	INT iResult = 0;
 	CHAR szERROR[256] = {};
@@ -180,7 +193,7 @@ VOID ClientHandle(SOCKET client_socket)
 		iResult = recv(client_socket, recvbuffer, BUFFER_LENGTH, 0);
 		if (iResult > 0)
 		{
-			cout << recvbuffer << "(" << strlen(recvbuffer) << " Bytes)" << endl;
+			cout << sz_client_address << recvbuffer << "(" << strlen(recvbuffer) << " Bytes)" << endl;
 			iSendResult = send(client_socket, recvbuffer, strlen(recvbuffer), 0);
 			dwError = WSAGetLastError();
 			if (iSendResult == SOCKET_ERROR)

@@ -9,7 +9,7 @@
 #include<Windows.h>
 #include<iphlpapi.h>
 #include<FormatLastError.h>
-
+#include<Messages.h>
 using namespace std;
 
 #pragma comment(lib, "WS2_32.lib")
@@ -96,10 +96,18 @@ void main()
 		//do
 		//{
 		iResult = recv(connect_socket, recvbuffer, BUFFER_LENGTH, 0);
+		/*DWORD dwError = WSAGetLastError();
+		CHAR szError[256] = {};
+		cout << FormatLastError(dwError, szError)<<endl;*/
 		if (iResult > 0)cout << recvbuffer << "(" << iResult << " Bytes)" << endl;
 		else if (result == 0) cout << "Connection closed" << endl;
 		else cout << FormatLastError(WSAGetLastError(), szERROR);//<< "Receive failed:\t" << WSAGetLastError() << endl;
 		//} while (iResult > 0);
+		if (strcmp(recvbuffer, DECLINE_MESSAGE) == 0)
+		{
+			system("PAUSE");
+			break;
+		}
 		ZeroMemory(sendbuffer, BUFFER_LENGTH);
 		SetConsoleCP(1251);
 		cin.getline(sendbuffer, BUFFER_LENGTH);
