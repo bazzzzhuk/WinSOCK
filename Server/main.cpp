@@ -1,4 +1,4 @@
-#ifndef WIN32_LEAN_AND_MEAN
+п»ї#ifndef WIN32_LEAN_AND_MEAN
 #define WIN32_LEAN_AND_MEAN
 #endif // WIN32_LEAN_AND_MEAN
 #define _WINSOCK_DEPRECATED_NO_WARNINGS
@@ -25,6 +25,8 @@ SOCKET sockets[MAX_CONNECTION] = {};
 DWORD dwThreadIDs[MAX_CONNECTION] = {};
 HANDLE hTreads[MAX_CONNECTION] = {};
 
+static INT i = 0; //СЃС‡С‘С‚С‡РёРє РєР»РёРµРЅС‚РѕРІ
+
 //struct ClientParameters
 //{
 //	SOCKET client_socket;
@@ -50,7 +52,7 @@ void main()
 		return;
 	}
 
-	//2) Параметры подключения:
+	//2) РџР°СЂР°РјРµС‚СЂС‹ РїРѕРґРєР»СЋС‡РµРЅРёСЏ:
 	addrinfo hints;
 	addrinfo* result;
 	ZeroMemory(&hints, sizeof(hints));
@@ -69,7 +71,7 @@ void main()
 		return;
 	}
 
-	//3)Создаём сокет для сервера, который он будет постоянно слушать "LISTENING"
+	//3)РЎРѕР·РґР°С‘Рј СЃРѕРєРµС‚ РґР»СЏ СЃРµСЂРІРµСЂР°, РєРѕС‚РѕСЂС‹Р№ РѕРЅ Р±СѓРґРµС‚ РїРѕСЃС‚РѕСЏРЅРЅРѕ СЃР»СѓС€Р°С‚СЊ "LISTENING"
 	SOCKET listen_socket = socket(result->ai_family, result->ai_socktype, result->ai_protocol);
 	dwError = WSAGetLastError();
 	if (listen_socket == INVALID_SOCKET)
@@ -96,7 +98,7 @@ void main()
 
 	freeaddrinfo(result);
 
-	//5) Запускаем прослушивание сокета:
+	//5) Р—Р°РїСѓСЃРєР°РµРј РїСЂРѕСЃР»СѓС€РёРІР°РЅРёРµ СЃРѕРєРµС‚Р°:
 	if (listen(listen_socket, MAX_CONNECTION) == SOCKET_ERROR)
 	{
 		dwError = WSAGetLastError();
@@ -108,8 +110,7 @@ void main()
 		return;
 	}
 
-	//6) Обработка соединений от клиентов:
-	INT i = 0; //счётчик клиентов
+	//6) РћР±СЂР°Р±РѕС‚РєР° СЃРѕРµРґРёРЅРµРЅРёР№ РѕС‚ РєР»РёРµРЅС‚РѕРІ:
 	do
 	{
 		sockaddr_in client_address;
@@ -122,7 +123,7 @@ void main()
 			cout << FormatLastError(dwError, szERROR) << endl;
 			cout << "Accept failed with error: " << WSAGetLastError() << endl;
 		}
-		//6.1) Получаем информацию о сокете клиента:
+		//6.1) РџРѕР»СѓС‡Р°РµРј РёРЅС„РѕСЂРјР°С†РёСЋ Рѕ СЃРѕРєРµС‚Рµ РєР»РёРµРЅС‚Р°:
 		sockaddr_in client_address_in = (sockaddr_in)client_address;
 		cout << inet_ntoa(client_address.sin_addr) << ":" << ntohs(client_address.sin_port) << endl;
 
@@ -133,12 +134,13 @@ void main()
 			(
 				NULL,	//Security attributes
 				0,		//stack size
-				(LPTHREAD_START_ROUTINE)ClientHandle,//Указатель на функцию которая будет выполнять ся в потоке.
+				(LPTHREAD_START_ROUTINE)ClientHandle,//РЈРєР°Р·Р°С‚РµР»СЊ РЅР° С„СѓРЅРєС†РёСЋ РєРѕС‚РѕСЂР°СЏ Р±СѓРґРµС‚ РІС‹РїРѕР»РЅСЏС‚СЊ СЃСЏ РІ РїРѕС‚РѕРєРµ.
 				(LPVOID)sockets[i],
 				0,//
 				&dwThreadIDs[i]
 			);
 			i++;
+			cout << "РљРѕР»РёС‡РµСЃС‚РІРѕ РїРѕРґРєР»СЋС‡С‘РЅРЅС‹С… Рє СЃРµСЂРІРµСЂСѓ : " << i << endl;
 		}
 		else
 		{
@@ -155,6 +157,11 @@ void main()
 			shutdown(client_socket, SD_BOTH);
 			closesocket(client_socket);
 		}
+		for (int ii = 0; ii < i; ii++)
+		{
+			cout << sockets[ii] << endl;
+			cout << hTreads[ii] << endl;
+		}
 	} while (true);
 
 
@@ -169,11 +176,13 @@ void main()
 	closesocket(listen_socket);
 
 	WSACleanup();
+
 }
 
 VOID ClientHandle(SOCKET client_socket)
 {
-	//7) Получение и отправка данных:
+	//7) РџРѕР»СѓС‡РµРЅРёРµ Рё РѕС‚РїСЂР°РІРєР° РґР°РЅРЅС‹С…:
+	cout << "--------------------------------------" << endl;
 	sockaddr_in client_address;
 	client_address.sin_family = AF_INET;
 	INT namelen = sizeof(client_address);
@@ -181,7 +190,7 @@ VOID ClientHandle(SOCKET client_socket)
 	CHAR sz_client_address[256] = {};
 	sprintf(sz_client_address, "%s:%d --> ", inet_ntoa(client_address.sin_addr), ntohs(client_address.sin_port));
 
-	cout << "Client connected:\t" << sz_client_address<<"\tSOCKET:\t" << client_socket << endl;
+	cout << "Client connected:\t" << sz_client_address << "\tSOCKET:" << client_socket << endl;
 	INT iSendResult = 0;
 	INT iResult = 0;
 	CHAR szERROR[256] = {};
@@ -203,18 +212,25 @@ VOID ClientHandle(SOCKET client_socket)
 				closesocket(client_socket);
 			}
 			else cout << "Bytes sent: " << iSendResult << endl;
+			cout << "--------------------------------------" << endl;
 		}
-		else if (iResult == 0)cout << "Connection closing..." << endl;
+		else if (iResult == 0)
+		{
+			cout << "Connection: " << sz_client_address << " closing..." << endl;
+			i--;
+			cout << "--------------------------------------" << endl;
+		}
 		else
 		{
 			cout << FormatLastError(dwError, szERROR) << endl;
 			cout << "Receive failed with error: " << WSAGetLastError() << endl;
-			closesocket(client_socket);
+			i--;
+			//closesocket(client_socket);
 		}
 	} while (iResult > 0);
 
 	iResult = shutdown(client_socket, SD_BOTH);
 	dwError = WSAGetLastError();
 	if (iResult == SOCKET_ERROR)cout << "Client shudown failed with " << FormatLastError(dwError, szERROR) << endl;
-	closesocket(client_socket);
+	//closesocket(client_socket);
 }
