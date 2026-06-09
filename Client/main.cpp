@@ -20,7 +20,7 @@ using namespace std;
 
 CHAR recvbuffer[BUFFER_LENGTH] = {};
 
-VOID Receive(SOCKET connect_socket);
+INT Receive(SOCKET connect_socket);
 
 void main()
 {
@@ -96,7 +96,7 @@ void main()
 		iResult = send(connect_socket, sendbuffer, strlen(sendbuffer), 0);
 		if (iResult == SOCKET_ERROR)
 		{
-			cout << FormatLastError(WSAGetLastError(), szERROR) << endl;
+			cout << "*" << FormatLastError(WSAGetLastError(), szERROR) << endl;
 			cout << "Send failed: \t" << WSAGetLastError() << endl;
 			closesocket(connect_socket);
 			freeaddrinfo(result);
@@ -109,7 +109,13 @@ void main()
 		SetConsoleCP(1251);
 		cin.getline(sendbuffer, BUFFER_LENGTH);
 		SetConsoleCP(866);
-	} while (strcmp(sendbuffer, "exit") != 0&&strcmp(recvbuffer, DECLINE_MESSAGE) != 0);
+		if (Receive(connect_socket) != 0)
+		{
+			//cout << FormatLastError(WSAGetLastError(), szERROR) << endl;
+			system("PAUSE");
+			break;
+		}
+	} while (strcmp(sendbuffer, "exit") != 0 && strcmp(recvbuffer, DECLINE_MESSAGE) != 0);
 
 	iResult = shutdown(connect_socket, SD_BOTH);
 	if (iResult == SOCKET_ERROR)
@@ -121,7 +127,7 @@ void main()
 	freeaddrinfo(result);
 	WSACleanup();
 }
-VOID Receive(SOCKET connect_socket)
+INT Receive(SOCKET connect_socket)
 {
 	DWORD dwERROR = 0;
 	CHAR szERROR[256] = {};
@@ -131,14 +137,23 @@ VOID Receive(SOCKET connect_socket)
 	{
 		ZeroMemory(recvbuffer, sizeof(recvbuffer));
 		INT iResult = recv(connect_socket, recvbuffer, BUFFER_LENGTH, 0);/*DWORD dwError = WSAGetLastError();CHAR szError[256] = {};cout << FormatLastError(dwError, szError)<<endl;*/
-		if (iResult > 0)cout << recvbuffer << "(" << iResult << " Bytes)" << endl;//else if (result == 0) cout << "Connection closed" << endl;
-		else cout << FormatLastError(WSAGetLastError(), szERROR);//<< "Receive failed:\t" << WSAGetLastError() << endl;
-	} while (strcmp(recvbuffer,DECLINE_MESSAGE)!=0);
+		if (iResult > 0)cout << recvbuffer << "(" << iResult << " Bytes)" << endl;
+		//else if (iResult == 0) cout << "Connection closed" << endl;
+		else
+		{
+			cout << "!" << FormatLastError(WSAGetLastError(), szERROR);
+			return WSAGetLastError();
+			ExitThread(0);
+			//closesocket(connect_socket);
+			//FreeConsole();
+			//break;
+		}//<< "Receive failed:\t" << WSAGetLastError() << endl;
+	} while (strcmp(recvbuffer, DECLINE_MESSAGE) != 0);
 	if (strcmp(recvbuffer, DECLINE_MESSAGE) == 0)
 	{
 		cout << "Для выхода нажмите Enter..." << endl;
 		//system("PAUSE");
 		//break;
 	}
-
+	return 0;
 }
