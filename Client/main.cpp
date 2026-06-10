@@ -141,7 +141,7 @@ INT Receive(SOCKET connect_socket)
 		//else if (iResult == 0) cout << "Connection closed" << endl;
 		else
 		{
-			cout << "!" << FormatLastError(WSAGetLastError(), szERROR);
+			cout << FormatLastError(WSAGetLastError(), szERROR);
 			return WSAGetLastError();
 			ExitThread(0);
 			//closesocket(connect_socket);
